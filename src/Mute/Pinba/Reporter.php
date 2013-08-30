@@ -6,9 +6,11 @@ use RuntimeException;
 
 class Reporter
 {
-    public function __construct($address=array('127.0.0.1', 30002))
+    public function __construct($host='127.0.0.1', $port=30002)
     {
-        $this->address = $address;
+        $this->address = is_array($host)
+            ? $host
+            : array($host, $port);
         $this->sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if (!$this->sock) {
             $errorcode = socket_last_error();
@@ -25,6 +27,7 @@ class Reporter
     public function __invoke(DataCollector $collector)
     {
         $msg = $this->prepare($collector);
+
         return $this->send($msg);
     }
 
@@ -44,11 +47,8 @@ class Reporter
 
         $dictionary = new Dictionary();
         foreach ($collector->timers as $timer) {
-            // timer_hit_count
             $writer->integerField(10, 1);
-
-            // timer_value
-            $writer->floatField(10, $timer->getElapsedTime());
+            $writer->floatField(11, $timer->getElapsedTime());
 
             $tag_count = 0;
             foreach (static::flattener($timer->tags) as $pair) {

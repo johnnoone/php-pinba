@@ -14,9 +14,10 @@ class Dictionary
     public function getIndex($word)
     {
         $index = array_search($word, $this->words);
-        if ($index == false) {
-            $index = count($this->words);
+        if ($index === false) {
             $this->words[] = $word;
+            end($this->words);
+            $index = key($this->words);
         }
 
         return $index;
